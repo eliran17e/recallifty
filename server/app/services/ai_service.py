@@ -5,14 +5,25 @@ import os
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
+# --- FIX ---
+# Initialize the model ONCE, here at the module level.
+try:
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
+except Exception as e:
+    print(f"[FATAL ERROR] Could not initialize Gemini model: {e}")
+    model = None
+
 def get_ai_suggestions(query: str):
     """
     Uses Gemini to generate possible matches for the user's memory description.
     Returns a list of suggestion strings.
     """
-    try:
-        model = genai.GenerativeModel("models/gemini-2.5-flash")
+    # --- FIX ---
+    # Don't re-create the model, just check if it exists
+    if model is None:
+        return ["Error: Gemini model not initialized"]
 
+    try:
         prompt = f"""
         The user is trying to recall a video, song, or clip.
         Based on this description, suggest 3 possible matches.
